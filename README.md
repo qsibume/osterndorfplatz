@@ -20,6 +20,8 @@ Webapp, in der sich Helfer für die Einsätze an Ostern 2027 eintragen.
 
 ### 1. Supabase (Datenbank + Login)
 
+> **Stand:** Die Datenbank ist im Supabase-Projekt `ackrhbcsflveljlyxsmz` (https://ackrhbcsflveljlyxsmz.supabase.co) bereits eingerichtet, inkl. Startdaten. Die Schritte 2 und 3 unten sind dort schon erledigt.
+
 1. Auf [supabase.com](https://supabase.com) ein Konto und ein neues Projekt erstellen (Region: Zürich oder Frankfurt).
 2. Links auf **SQL Editor**, dann den Inhalt von `supabase/schema.sql` einfügen und auf **Run** klicken.
 3. Danach `supabase/seed.sql` gleich ausführen. Damit werden die Bereiche und Einsätze aus der Excel-Datei übernommen.
