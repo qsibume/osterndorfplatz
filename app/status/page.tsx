@@ -1,5 +1,6 @@
 import { SUPABASE_ANON_KEY, SUPABASE_URL, serviceRoleKey } from "@/lib/env";
 import { siteUrl } from "@/lib/format";
+import { mailMode } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,15 @@ export default async function Status() {
     ["Service Role Key", describeKey(serviceRoleKey())],
     ["Site URL", siteUrl()],
     ["Verbindung zu Supabase", health],
-    ["E-Mail-Versand (Resend)", process.env.RESEND_API_KEY ? "eingerichtet ✅" : "noch nicht eingerichtet"],
+    [
+      "E-Mail-Versand",
+      mailMode() === "smtp"
+        ? `Gmail/SMTP über ${process.env.SMTP_USER} ✅`
+        : mailMode() === "resend"
+          ? "Resend ✅"
+          : "noch nicht eingerichtet",
+    ],
+    ["Ersatz-Adresse (MAIL_FALLBACK)", process.env.MAIL_FALLBACK || "nicht gesetzt"],
   ];
   return (
     <div className="card scroll">

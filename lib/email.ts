@@ -1,6 +1,31 @@
-// Versand über Resend (https://resend.com). Ohne API-Key werden E-Mails nur ins Log geschrieben.
+// Versand über Gmail/SMTP (SMTP_USER + SMTP_PASS) oder Resend (RESEND_API_KEY).
+// Ist beides nicht eingerichtet, werden E-Mails nur ins Log geschrieben.
+import nodemailer from "nodemailer";
 
 type Attachment = { filename: string; content: string; contentType?: string };
+
+const clean = (v?: string) => (v ?? "").trim();
+
+export function mailMode() {
+  if (clean(process.env.SMTP_USER) && clean(process.env.SMTP_PASS)) return "smtp" as const;
+  if (clean(process.env.RESEND_API_KEY)) return "resend" as const;
+  return "none" as const;
+}
+
+let transport: nodemailer.Transporter | null = null;
+function smtp() {
+  if (!transport) {
+    const port = Number(process.env.SMTP_PORT || 465);
+    transport = nodemailer.createTransport({
+      host: clean(process.env.SMTP_HOST) || "smtp.gmail.com",
+      port,
+      secure: port === 465,
+      // Google zeigt App-Passwörter mit Leerzeichen an – die werden hier entfernt
+      auth: { user: clean(process.env.SMTP_USER), pass: clean(process.env.SMTP_PASS).replace(/\s+/g, "") },
+    });
+  }
+  return transport;
+}
 
 export async function sendMail(opts: {
   to: string | string[];
@@ -9,12 +34,29 @@ export async function sendMail(opts: {
   replyTo?: string | null;
   attachments?: Attachment[];
 }) {
-  const key = process.env.RESEND_API_KEY;
-  const from = process.env.MAIL_FROM || "Ostern 2027 <onboarding@resend.dev>";
-  if (!key) {
-    console.log("[mail] RESEND_API_KEY fehlt – E-Mail nicht gesendet:", opts.subject, "->", opts.to);
+  const mode = mailMode();
+  if (mode === "none") {
+    console.log("[mail] Kein E-Mail-Versand eingerichtet – nicht gesendet:", opts.subject, "->", opts.to);
     return;
   }
+  if (mode === "smtp") {
+    const user = clean(process.env.SMTP_USER);
+    await smtp().sendMail({
+      from: clean(process.env.MAIL_FROM) || `"Ostern 2027 Helfer" <${user}>`,
+      to: opts.to,
+      subject: opts.subject,
+      html: opts.html,
+      replyTo: opts.replyTo || undefined,
+      attachments: opts.attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        contentType: a.contentType,
+      })),
+    });
+    return;
+  }
+  const key = clean(process.env.RESEND_API_KEY);
+  const from = clean(process.env.MAIL_FROM) || "Ostern 2027 <onboarding@resend.dev>";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
