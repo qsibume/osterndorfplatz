@@ -32,8 +32,8 @@ export default function AreaFields({ area }: { area?: AreaRow }) {
           <input name="leader_name" defaultValue={area?.leader_name ?? ""} />
         </div>
         <div>
-          <label>E-Mail Leitung (erhält Meldungen)</label>
-          <input name="leader_email" type="email" defaultValue={area?.leader_email ?? ""} />
+          <label>E-Mail Leitung (mehrere mit Komma)</label>
+          <input name="leader_email" type="email" multiple defaultValue={area?.leader_email ?? ""} />
         </div>
         <div>
           <label>Telefon Leitung</label>

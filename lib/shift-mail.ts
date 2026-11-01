@@ -52,13 +52,21 @@ export function shiftIcs(s: ShiftDetails, userId: string, method: "PUBLISH" | "C
       .join("\n"),
     location: s.location || process.env.EVENT_LOCATION || null,
     organizerName: s.area.leader_name,
-    organizerEmail: s.area.leader_email,
+    organizerEmail: emails(s.area.leader_email)[0] ?? null,
     method,
   });
 }
 
+// Mehrere Leiter-Adressen sind mit Komma getrennt möglich
+function emails(v: string | null | undefined) {
+  return (v ?? "").split(/[,;\s]+/).map((e) => e.trim()).filter((e) => e.includes("@"));
+}
+
 function leaderRecipient(s: ShiftDetails) {
-  return s.area.leader_email || process.env.MAIL_FALLBACK || null;
+  const list = emails(s.area.leader_email);
+  if (list.length) return list;
+  const fb = emails(process.env.MAIL_FALLBACK);
+  return fb.length ? fb : null;
 }
 
 export async function sendSignupMails(s: ShiftDetails, helper: Profile, taken: number) {
@@ -70,7 +78,7 @@ export async function sendSignupMails(s: ShiftDetails, helper: Profile, taken: n
   await sendMail({
     to: helper.email,
     subject: `Danke! Du bist eingetragen: ${s.task} – ${slot}`,
-    replyTo: s.area.leader_email,
+    replyTo: emails(s.area.leader_email).join(", ") || null,
     html: layout(
       "Danke, es hat geklappt!",
       `<p>Hallo ${esc(helper.name)}</p>
