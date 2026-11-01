@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { requestLoginLink } from "./auth-actions";
 
 export default function AuthForm() {
   const [mode, setMode] = useState<"register" | "login">("register");
@@ -21,26 +21,21 @@ export default function AuthForm() {
       return;
     }
     setBusy(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-        shouldCreateUser: mode === "register",
-        data: mode === "register" ? { name, phone } : undefined,
-      },
-    });
+    let res;
+    try {
+      res = await requestLoginLink({ mode, email, name, phone });
+    } catch (err) {
+      res = { ok: false as const, code: "other" as const, message: String(err) };
+    }
     setBusy(false);
-    if (error) {
-      if (/signups not allowed|not found|otp_disabled/i.test(error.message)) {
+    if (!res.ok) {
+      if (res.code === "not_registered") {
         setError("Diese E-Mail ist noch nicht registriert. Bitte registriere dich zuerst.");
         setMode("register");
-      } else if (/rate|seconds/i.test(error.message)) {
+      } else if (res.code === "rate_limit") {
         setError("Bitte warte kurz, bevor du einen neuen Link anforderst.");
-      } else if (/type ?error|load failed|failed to fetch|network/i.test(error.message)) {
-        setError("Keine Verbindung zum Server. Bitte versuche es nochmals oder mit einem anderen Browser. (" + error.message + ")");
       } else {
-        setError("Das hat nicht geklappt: " + error.message);
+        setError("Das hat nicht geklappt: " + res.message);
       }
       return;
     }
