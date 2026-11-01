@@ -37,6 +37,8 @@ export default function AuthForm() {
         setMode("register");
       } else if (/rate|seconds/i.test(error.message)) {
         setError("Bitte warte kurz, bevor du einen neuen Link anforderst.");
+      } else if (/type ?error|load failed|failed to fetch|network/i.test(error.message)) {
+        setError("Keine Verbindung zum Server. Bitte versuche es nochmals oder mit einem anderen Browser. (" + error.message + ")");
       } else {
         setError("Das hat nicht geklappt: " + error.message);
       }
