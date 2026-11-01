@@ -16,6 +16,29 @@ Webapp, in der sich Helfer für die Einsätze an Ostern 2027 eintragen.
 
 ---
 
+## Aktueller Stand (1. November 2026)
+
+- **Online:** https://osterndorfplatz.vercel.app (Vercel, Projekt „osterndorfplatz“)
+- **Datenbank:** Supabase-Projekt `ackrhbcsflveljlyxsmz`, mit 13 Bereichen und 8 Einsätzen aus der Excel
+- **Admin:** qsi.baumann@gmail.com
+- **Diagnose:** https://osterndorfplatz.vercel.app/status zeigt, ob alle Einstellungen stimmen
+- **Vorführung:** Bis nach der Vorführung gehen **alle Leiter-Meldungen an Niklaus und Leona**. Die Original-Adressen sind in der Tabelle `leader_email_backup` gesichert. Zurückstellen mit `supabase/restore_leader_emails.sql`.
+
+### Offene Punkte
+
+1. **Gmail als Absender einrichten:** Google-App-Passwort erstellen, dann eintragen
+   - in Supabase unter Authentication → SMTP (Host `smtp.gmail.com`, Port `465`, User `qsi.baumann@gmail.com`)
+   - in Vercel als `SMTP_USER`, `SMTP_PASS` und `MAIL_FALLBACK`, danach Redeploy
+2. Login-E-Mail-Vorlagen in Supabase auf Deutsch übersetzen (Magic Link und Confirm signup)
+3. Nach der Vorführung: Test-Anmeldungen löschen und Leiter-E-Mails zurückstellen
+4. Definitive Adresse (Domain) und Absender-E-Mail festlegen
+5. Fehlende Leiter-E-Mails im Admin-Bereich ergänzen. Datum beim Familienweg prüfen (23. März 2027 ist ein Dienstag).
+6. Optional: In Vercel die Function Region auf Frankfurt (`fra1`) stellen
+
+### E-Mail-Versand
+
+Die App verschickt E-Mails über **Gmail/SMTP** (`SMTP_USER` und `SMTP_PASS`) oder über **Resend** (`RESEND_API_KEY`). Ist beides gesetzt, hat SMTP Vorrang. Ist nichts gesetzt, werden keine Bestätigungen verschickt. Bei einem Bereich können mehrere Leiter-E-Mails mit Komma getrennt eingetragen werden.
+
 ## Einrichtung (ca. 30 Minuten, alles gratis)
 
 ### 1. Supabase (Datenbank + Login)
